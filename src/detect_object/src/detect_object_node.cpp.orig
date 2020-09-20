@@ -1,0 +1,50 @@
+#include <ros/ros.h>
+// PCL specific includes
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+ros::Publisher pub;
+int count = 0;
+void 
+cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
+{
+	pcl::PointCloud<pcl::PointXYZ> cloud;
+	pcl::fromROSMsg (*input, cloud);
+	for(auto pnt : cloud) {
+		if(pnt.z <= 0.30 && pnt.z > 0.15) {
+			std::cout<<"stop robot"<<count++<<"\t"<<pnt.z<<std::endl;
+		}
+	}
+}
+
+int
+main (int argc, char** argv)
+{
+  // Initialize ROS
+  ros::init (argc, argv, "detect_object");
+  ros::NodeHandle nh;
+
+    fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+    struct termios SerialPortSettings;  // Create the structure
+    tcgetattr(fd, &SerialPortSettings);
+    cfsetispeed(&SerialPortSettings,B115200); // Set Read  Speed as 115200
+    cfsetospeed(&SerialPortSettings,B115200);
+    if((tcsetattr(fd,TCSANOW,&SerialPortSettings)) != 0) // Set the attributes to the termios structure
+      printf("Error while setting attributes \n");
+      printf("\nfunction name is  %s >>\n",__func__);
+      printf("reading from Serial port== %c >>\n",red);
+      printf("returned fd is :%d\n",fd );
+      if (fd == -1)
+      {
+        perror("open_port: Unable to open /dev/ttyACM0 - ");
+      }
+
+  // Create a ROS subscriber for the input point cloud
+  ros::Subscriber sub = nh.subscribe ("/camera/depth/color/points", 1, cloud_cb);
+
+  // Spin
+  ros::spin ();
+}
+
